@@ -47,6 +47,12 @@ def add_quote():
     """Add a quote to the database"""
     pass
 
+def list_quotes():
+    """List all quotes"""
+    cursor.execute("SELECT * FROM Quotes")
+    print("Name | Date | Time | Square Metres | Total Price")
+    for row in cursor.fetchall():
+        print(f"{row[0]} | {row[1]} | {row[2]} | {row[3]} | {row[4]}")
 
 def menu():
     """Display the menu"""
@@ -69,7 +75,7 @@ def menu():
         elif option == 3:
             add_quote()
         elif option == 4:
-            pass
+            list_quotes()
         elif option == 5:
             pass
         elif option == 6:
