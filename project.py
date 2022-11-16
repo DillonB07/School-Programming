@@ -45,14 +45,34 @@ def list_customers():
 
 def add_quote():
     """Add a quote to the database"""
-    pass
+    quote = {}
+    customers = []
+    # quote["name"] = input("Name: ")
+    cursor.execute("SELECT forename, surname FROM Customers")
+    for row in cursor.fetchall():
+        customers.append(row[0] + " " + row[1])
+    quote["length"] = input("Length: ")
+    quote["width"] = input("Width: ")
+    quote["square_metres"] = quote["length"] * quote["width"]
+    quote["underlay"] = input("Underlay: ")
+    quote["total_price"] = input("Total Price: ")
+
+    cursor.execute(
+        f"""
+        INSERT INTO Quotes
+        VALUES (\'{quote["name"]}\', \'{quote["length"]}\', \'{quote["width"]}\', \'{quote["square_metres"]}\', \'{quote['underlay']}\', \'{quote["total_price"]}\')
+        """
+    )
+    db.commit()
+
 
 def list_quotes():
     """List all quotes"""
     cursor.execute("SELECT * FROM Quotes")
-    print("Name | Date | Time | Square Metres | Total Price")
+    print("Name | Length | Width | Square Metres | Underlay | Total Price")
     for row in cursor.fetchall():
-        print(f"{row[0]} | {row[1]} | {row[2]} | {row[3]} | {row[4]}")
+        print(f"{row[0]} | {row[1]} | {row[2]} | {row[3]} | {row[4]} | {row[5]}")
+
 
 def menu():
     """Display the menu"""
@@ -61,9 +81,9 @@ def menu():
             """
     1. Add a customer
     2. List all customers
-    3. Add a new quote
+    3. Add a new quote [WIP]
     4. List all quotes
-    5. Export customers and quotes
+    5. Export customers and quotes [TO DO]
     6. Exit
     """
         )
