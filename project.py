@@ -2,15 +2,15 @@ import json
 import os
 import sqlite3
 
-PRICES = {
-    "Carpets": 22.50,
-    "Underlay - First Step": 5.99,
-    "Underlay - Monarch": 7.99,
-    "Underlay - Royal": 60,
-    "Gripper": 1.10,
-    "hour": 65,
-}
+PRICES = [
+    {"Carpets": 22.50},
+    {"Underlay - First Step": 5.99},
+    {"Underlay - Monarch": 7.99},
+    {"Underlay - Royal": 60},
+    {"Gripper": 1.10},
+]
 
+PRICE_PER_HOUR = 65
 AMOUNT_PER_HOUR = 16  # Amount of square metres he can do per hour
 
 db = sqlite3.connect("Proj.db")
@@ -47,14 +47,18 @@ def add_quote():
     """Add a quote to the database"""
     quote = {}
     customers = []
-    # quote["name"] = input("Name: ")
-    cursor.execute("SELECT forename, surname FROM Customers")
-    for row in cursor.fetchall():
-        customers.append(row[0] + " " + row[1])
+    cursor.execute("SELECT forename, surname, ROWID FROM Customers")
+    for i, row in enumerate(cursor.fetchall()):
+        customers.append({"id": row[2], "forename": row[0], "surname": row[1]})
+        print(f"{i}) {row[1]}, {row[0]}")
+
+    quote["customer"] = customers[int(input("Select a customer: ")) - 1]["id"]
     quote["length"] = input("Length: ")
     quote["width"] = input("Width: ")
     quote["square_metres"] = quote["length"] * quote["width"]
-    quote["underlay"] = input("Underlay: ")
+    for i, item in enumerate(PRICES):
+        print(f"{i + 1}) {list(item.keys())[0]}")
+    quote["underlay"] = int(input("Select an underlay: ")) - 1
     quote["total_price"] = input("Total Price: ")
 
     cursor.execute(
