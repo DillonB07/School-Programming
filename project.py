@@ -1,13 +1,13 @@
-import json
-import os
 import sqlite3
+import sys
+import math
 
 PRICES = [
-    {"Carpets": 22.50},
-    {"Underlay - First Step": 5.99},
-    {"Underlay - Monarch": 7.99},
-    {"Underlay - Royal": 60},
-    {"Gripper": 1.10},
+    ["Carpets", 22.50],
+    ["Underlay - First Step", 5.99],
+    ["Underlay - Monarch", 7.99],
+    ["Underlay - Royal", 60],
+    ["Gripper", 1.10],
 ]
 
 PRICE_PER_HOUR = 65
@@ -19,7 +19,6 @@ cursor = db.cursor()
 
 def add_customer():
     """Add a customer to the database"""
-
     customer = {}
     customer["forename"] = input("Forename: ")
     customer["surname"] = input("Surname: ")
@@ -50,21 +49,21 @@ def add_quote():
     cursor.execute("SELECT forename, surname, ROWID FROM Customers")
     for i, row in enumerate(cursor.fetchall()):
         customers.append({"id": row[2], "forename": row[0], "surname": row[1]})
-        print(f"{i}) {row[1]}, {row[0]}")
+        print(f"{i+1}) {row[1]}, {row[0]}")
 
     quote["customer"] = customers[int(input("Select a customer: ")) - 1]["id"]
-    quote["length"] = input("Length: ")
-    quote["width"] = input("Width: ")
+    quote["length"] = int(input("Length: "))
+    quote["width"] = int(input("Width: "))
     quote["square_metres"] = quote["length"] * quote["width"]
     for i, item in enumerate(PRICES):
-        print(f"{i + 1}) {list(item.keys())[0]}")
+        print(f"{i + 1}) {item[0]}")
     quote["underlay"] = int(input("Select an underlay: ")) - 1
-    quote["total_price"] = input("Total Price: ")
+    quote["total_price"] = (PRICES[quote['underlay']][1] * quote['square_metres']) + (math.ceil(quote['square_metres'] / AMOUNT_PER_HOUR) * PRICE_PER_HOUR)
 
     cursor.execute(
         f"""
-        INSERT INTO Quotes
-        VALUES (\'{quote["name"]}\', \'{quote["length"]}\', \'{quote["width"]}\', \'{quote["square_metres"]}\', \'{quote['underlay']}\', \'{quote["total_price"]}\')
+INSERT INTO Quotes
+VALUES (\'{quote["customer"]}\', \'{quote["length"]}\', \'{quote["width"]}\', \'{quote['underlay']}\', \'{quote["total_price"]}\')
         """
     )
     db.commit()
@@ -75,8 +74,14 @@ def list_quotes():
     cursor.execute("SELECT * FROM Quotes")
     print("Name | Length | Width | Square Metres | Underlay | Total Price")
     for row in cursor.fetchall():
-        print(f"{row[0]} | {row[1]} | {row[2]} | {row[3]} | {row[4]} | {row[5]}")
+        cursor.execute(f"SELECT forename, surname FROM Customers WHERE ROWID = {row[0]}")
+        customer = cursor.fetchone()
+        print(f"{customer[0]} {customer[1]} | {row[1]}m | {row[2]}m | {int(row[1]) * int(row[2])}m^2| {row[3]} | £{row[4]}")
 
+def export():
+    """Export the database to a CSV file"""
+    # Export data to CSV file
+    pass
 
 def menu():
     """Display the menu"""
@@ -85,7 +90,7 @@ def menu():
             """
     1. Add a customer
     2. List all customers
-    3. Add a new quote [WIP]
+    3. Add a new quote
     4. List all quotes
     5. Export customers and quotes [TO DO]
     6. Exit
@@ -103,7 +108,7 @@ def menu():
         elif option == 5:
             pass
         elif option == 6:
-            raise KeyboardInterrupt
+            sys.exit()
     except ValueError:
         print("Invalid option")
         menu()
@@ -111,3 +116,4 @@ def menu():
 
 while True:
     menu()
+
