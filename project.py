@@ -96,27 +96,31 @@ def export():
     for row in cursor.fetchall():
         # print(f"{row=}")
         user = {
-                "surname": row[1],
-                "forename": row[0],
-                "town": row[2],
-                "telephone": row[3],
-                "quotes": []
-            }
+            "surname": row[1],
+            "forename": row[0],
+            "town": row[2],
+            "telephone": row[3],
+            "quotes": [],
+        }
         cursor.execute(f"SELECT * FROM Quotes WHERE customer = {row[-1]}")
         for quote in cursor.fetchall():
             # print(f"{quote=}")
-            user['quotes'].append({"length": int(quote[0]),
-                "width": int(quote[1]),
-                "square_metres": int(quote[0]) * int(quote[1]),
-                "underlay": quote[2],
-                "total_price": int(quote[3]),
-            })
-        data['users'].append(user)
+            user["quotes"].append(
+                {
+                    "length": int(quote[0]),
+                    "width": int(quote[1]),
+                    "square_metres": int(quote[0]) * int(quote[1]),
+                    "underlay": quote[2],
+                    "total_price": int(quote[3]),
+                }
+            )
+        data["users"].append(user)
     print(f"{data=}")
-    json.dump(data, open("data.json", "w", encoding='utf-8'), indent=4)
-    # with open('test.csv', 'w') as f:
-    #     for key in my_dict.keys():
-    #         f.write("%s,%s"%(key,my_dict[key])) # NOQA
+    json.dump(data, open("data.json", "w", encoding="utf-8"), indent=4)
+    with open("datatest.csv", "w") as f:
+        for user in data["users"]:
+            # f.write("%s,%s"%(key,data[key]))
+            f.write(f"name,{user['surname'].upper()}, {user['forename'].upper()}\n")
 
 
 def menu():
@@ -142,24 +146,10 @@ def menu():
             6: sys.exit,
         }
         options[option]()
-        # if option == 1:
-        #     add_customer()
-        # elif option == 2:
-        #     list_customers()
-        # elif option == 3:
-        #     add_quote()
-        # elif option == 4:
-        #     list_quotes()
-        # elif option == 5:
-        #     export()
-        # elif option == 6:
-        #     sys.exit()
     except ValueError:
         print("Invalid option")
         menu()
 
-
-# Using options dictionary, call the function
 
 while True:
     menu()
