@@ -10,10 +10,9 @@ def check_isosceles(length_one, length_two, length_three):
         length_one != length_two or length_two != length_three or length_one != length_three
     ):
         return "Isosceles Triangle"
-    elif length_one == length_two and length_two == length_three:
+    if length_one == length_two and length_two == length_three:
         return "Equilateral Triangle"
-    else:
-        return "Not an isosceles triangle"
+    return "Not an isosceles triangle"
 
 if __name__ == '__main__':
     l1 = input("Length 1: ")
