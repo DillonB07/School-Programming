@@ -27,12 +27,10 @@ def add_customer():
     customer["town"] = input("Town: ")
     customer["telephone"] = input("Telephone number: ")
 
-    cursor.execute(
-        f"""
+    cursor.execute(f"""
         INSERT INTO Customers
         VALUES (\'{customer["forename"]}\', \'{customer["surname"]}\', \'{customer["town"]}\', \'{customer["telephone"]}\')
-        """
-    )
+        """)
     db.commit()
 
 
@@ -60,16 +58,14 @@ def add_quote():
     for i, item in enumerate(PRICES):
         print(f"{i + 1}) {item[0]}")
     quote["underlay"] = int(input("Select an underlay: ")) - 1
-    quote["total_price"] = (PRICES[quote["underlay"]][1] * quote["square_metres"]) + (
-        math.ceil(quote["square_metres"] / AMOUNT_PER_HOUR) * PRICE_PER_HOUR
-    )
+    quote["total_price"] = (
+        PRICES[quote["underlay"]][1] * quote["square_metres"]) + (math.ceil(
+            quote["square_metres"] / AMOUNT_PER_HOUR) * PRICE_PER_HOUR)
 
-    cursor.execute(
-        f"""
+    cursor.execute(f"""
 INSERT INTO Quotes
 VALUES (\'{quote["customer"]}\', \'{quote["length"]}\', \'{quote["width"]}\', \'{quote['underlay']}\', \'{quote["total_price"]}\')
-        """
-    )
+        """)
     db.commit()
 
 
@@ -81,12 +77,11 @@ def list_quotes():
     )
     for row in cursor.fetchall():
         cursor.execute(
-            f"SELECT forename, surname FROM Customers WHERE ROWID = {row[0]}"
-        )
+            f"SELECT forename, surname FROM Customers WHERE ROWID = {row[0]}")
         customer = cursor.fetchone()
         print(
-            f"{customer[0] + ' ' + customer[1]:10} | {row[1] + 'm':10} | {row[2] + 'm':10} | {str(int(row[1]) * int(row[2])) + 'm^2':10}| {row[3]:10} | £{row[4]}"
-        )  # NOQA
+            f"{customer[1] + ', ' + customer[0]:10} | {row[1] + 'm':10} | {row[2] + 'm':10} | {str(int(row[1]) * int(row[2])) + 'm^2':10}| {row[3]:10} | £{row[4]}"
+        )
 
 
 def export():
@@ -95,47 +90,59 @@ def export():
     cursor.execute("SELECT *, ROWID FROM Customers")
     for row in cursor.fetchall():
         # print(f"{row=}")
+        cursor.execute(f"SELECT * FROM Quotes WHERE customer = {row[-1]}")
+        quotes = cursor.fetchall()
         user = {
             "surname": row[1],
             "forename": row[0],
             "town": row[2],
             "telephone": row[3],
-            "quotes": [],
+            "total_quotes": len(quotes),
+            "quotes": []
         }
-        cursor.execute(f"SELECT * FROM Quotes WHERE customer = {row[-1]}")
-        for quote in cursor.fetchall():
+        for quote in quotes:
             # print(f"{quote=}")
-            user["quotes"].append(
-                {
-                    "length": int(quote[0]),
-                    "width": int(quote[1]),
-                    "square_metres": int(quote[0]) * int(quote[1]),
-                    "underlay": quote[2],
-                    "total_price": int(quote[3]),
-                }
-            )
+            user["quotes"].append({
+                "length":
+                int(quote[1]),
+                "width":
+                int(quote[2]),
+                "square_metres":
+                int(quote[1]) * int(quote[2]),
+                "underlay":
+                quote[3],
+                "total_price":
+                float(quote[4]),
+            })
         data["users"].append(user)
-    print(f"{data=}")
     json.dump(data, open("data.json", "w", encoding="utf-8"), indent=4)
-    with open("datatest.csv", "w") as f:
+    with open("customer_data.csv", "w") as f:
+        f.write('surname, forename, town, telephone, quotes\n')
         for user in data["users"]:
             # f.write("%s,%s"%(key,data[key]))
-            f.write(f"name,{user['surname'].upper()}, {user['forename'].upper()}\n")
+            f.write(
+                f"{user['surname'].upper()}, {user['forename'].lower()},{user['town']},{user['telephone']},{user['total_quotes']}\n"
+            )
+    with open('quotes_data.csv', 'w') as f:
+        f.write('customer, length, width, square_metres, underlay, total_price\n')
+        for user in data["users"]:
+            for quote in user["quotes"]:
+                f.write(
+                    f"{user['surname'].upper()} {user['forename'].lower()},{quote['length']},{quote['width']},{quote['square_metres']},{quote['underlay']},{quote['total_price']:.2f}\n"
+                )
 
 
 def menu():
     """Display the menu"""
     try:
-        print(
-            """
+        print("""
     1. Add a customer
     2. List all customers
     3. Add a new quote
     4. List all quotes
-    5. Export customers and quotes [TO DO]
+    5. Export customers and quotes
     6. Exit
-    """
-        )
+    """)
         option = int(input(">>> "))
         options = {
             1: add_customer,
@@ -145,11 +152,12 @@ def menu():
             5: export,
             6: sys.exit,
         }
-        options[option]()
     except ValueError:
         print("Invalid option")
         menu()
+    else:
+        options[option]()
 
-
+print(f'{"Decorator Database":=^50}')
 while True:
     menu()
